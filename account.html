@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account — Helping.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-row">
+    <a href="index.html" class="brand"><span class="brand-mark"></span>Helping.com</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="nearby.html">Nearby</a></li>
+      <li><a href="help-now.html">Help Now</a></li>
+      <li><a href="account.html" class="active">Account</a></li>
+    </ul>
+    <div class="nav-actions"><span data-nav-auth></span></div>
+  </div>
+</nav>
+
+<section class="section" id="loggedOutView" style="display:none;">
+  <div class="container" style="max-width:420px;text-align:center;">
+    <h1 style="font-size:1.5rem;">Welcome to Helping.com</h1>
+    <p>Log in or create an account to request services and track them here.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+      <a href="login.html" class="btn btn-navy btn-block">Log in</a>
+      <a href="register.html" class="btn btn-primary btn-block">Create Account</a>
+    </div>
+    <div class="divider"></div>
+    <p>Are you a service provider?</p>
+    <a href="register-helper.html" class="btn btn-outline btn-block">Register as a Helper</a>
+  </div>
+</section>
+
+<section class="section" id="loggedInView" style="display:none;">
+  <div class="container dash-shell">
+    <nav class="dash-nav" id="dashNav">
+      <button data-tab="profile" class="is-active">Profile</button>
+      <button data-tab="saved">Saved services</button>
+      <button data-tab="requests">Requests</button>
+      <button data-tab="reviews">Reviews</button>
+      <button data-tab="settings">Settings</button>
+      <button data-tab="logout" style="color:#C43A3A;">Log out</button>
+    </nav>
+
+    <div class="dash-panel">
+      <div class="tab-panel" data-panel="profile">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+          <div class="avatar" id="avatarInitials"></div>
+          <div><h2 id="profName" style="margin-bottom:2px;"></h2><p id="profEmail" style="margin:0;"></p></div>
+        </div>
+        <div class="grid grid-2">
+          <div class="card-panel"><div style="font-size:.8rem;color:var(--text-faint);">Phone</div><b id="profPhone"></b></div>
+          <div class="card-panel"><div style="font-size:.8rem;color:var(--text-faint);">Member since</div><b id="profSince"></b></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="saved" style="display:none;">
+        <div class="empty-state">
+          <div style="font-size:2rem;">💾</div>
+          <h3>No saved services yet</h3>
+          <p>Save providers you like from their profile page to find them faster next time.</p>
+          <a href="services.html" class="btn btn-outline">Browse services</a>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="requests" style="display:none;">
+        <h2 style="font-size:1.15rem;">Your requests</h2>
+        <div id="requestsList"></div>
+      </div>
+
+      <div class="tab-panel" data-panel="reviews" style="display:none;">
+        <div class="empty-state">
+          <div style="font-size:2rem;">⭐</div>
+          <h3>You haven't left any reviews</h3>
+          <p>Reviews you leave for providers will show up here.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="settings" style="display:none;">
+        <h2 style="font-size:1.15rem;">Settings</h2>
+        <div class="field"><label>Full name</label><input id="setName"></div>
+        <div class="field"><label>Phone</label><input id="setPhone"></div>
+        <button class="btn btn-primary" id="saveSettings">Save changes</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <div><div class="brand" style="margin-bottom:6px;"><span class="brand-mark"></span>Helping.com</div><div class="footer-tag">Whatever you need. Help is nearby.</div></div>
+    <div class="footer-links"><a href="about.html">About Us</a><a href="how-it-works.html">How It Works</a></div>
+  </div>
+</footer>
+
+<nav class="bottom-nav">
+  <div class="bottom-nav-row"><a href="index.html">Home</a><a href="services.html">Services</a><a href="nearby.html">Nearby</a><a href="help-now.html">Help</a><a href="account.html" class="active">Account</a></div>
+</nav>
+
+<script src="js/session.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const user = Session.currentUser();
+  if (!user){
+    document.getElementById("loggedOutView").style.display = "block";
+  } else {
+    document.getElementById("loggedInView").style.display = "block";
+    document.getElementById("avatarInitials").textContent = user.name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+    document.getElementById("profName").textContent = user.name;
+    document.getElementById("profEmail").textContent = user.email;
+    document.getElementById("profPhone").textContent = user.phone || "—";
+    document.getElementById("profSince").textContent = new Date(user.createdAt).toLocaleDateString(undefined, { month:"long", year:"numeric" });
+    document.getElementById("setName").value = user.name;
+    document.getElementById("setPhone").value = user.phone || "";
+
+    function renderRequests(){
+      const reqs = Session.getRequests(user.id);
+      const wrap = document.getElementById("requestsList");
+      wrap.innerHTML = reqs.length ? reqs.map(r => `
+        <div class="card-panel" style="margin-bottom:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div>
+            <b>${r.providerName}</b> — ${r.service}
+            <div style="font-size:.85rem;color:var(--text-muted);">Preferred time: ${r.time || "—"} · ${r.price}</div>
+            ${r.notes ? `<div style="font-size:.85rem;color:var(--text-faint);margin-top:4px;">"${r.notes}"</div>` : ""}
+          </div>
+          <span class="badge badge-open">${r.status}</span>
+        </div>`).join("") : `<div class="empty-state"><div style="font-size:2rem;">📋</div><h3>No requests yet</h3><p>When you request a service, it'll show up here.</p><a href="services.html" class="btn btn-outline">Browse services</a></div>`;
+    }
+    renderRequests();
+
+    document.querySelectorAll("#dashNav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (btn.dataset.tab === "logout"){
+          Session.logout();
+          toast("Logged out.");
+          setTimeout(() => window.location.href = "index.html", 400);
+          return;
+        }
+        document.querySelectorAll("#dashNav button").forEach(b => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        document.querySelectorAll(".tab-panel").forEach(p => p.style.display = p.dataset.panel === btn.dataset.tab ? "block" : "none");
+      });
+    });
+
+    if (location.hash === "#requests") document.querySelector('[data-tab="requests"]').click();
+
+    document.getElementById("saveSettings").addEventListener("click", () => {
+      Session.updateUser(user.id, { name: document.getElementById("setName").value, phone: document.getElementById("setPhone").value });
+      toast("Profile updated.", "success");
+    });
+  }
+</script>
+</body>
+</html>

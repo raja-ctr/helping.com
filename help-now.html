@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help Now — Helping.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-row">
+    <a href="index.html" class="brand"><span class="brand-mark"></span>Helping.com</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="nearby.html">Nearby</a></li>
+      <li><a href="help-now.html" class="active">Help Now</a></li>
+      <li><a href="account.html">Account</a></li>
+    </ul>
+    <div class="nav-actions">
+      <span data-nav-auth></span>
+      <button class="nav-toggle" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</nav>
+
+<header class="section" style="padding-bottom:0;">
+  <div class="container" style="max-width:720px;">
+    <span class="eyebrow-tag" style="background:var(--orange-tint);">Priority assistance</span>
+    <h1>Need help right now?</h1>
+    <p>Tell us what you need and we'll help you find the appropriate local assistance nearby.</p>
+    <div class="info-strip" style="margin-bottom:24px;">${"⚠️"} For life-threatening emergencies, contact your local emergency services immediately — Helping.com is not a replacement for them.</div>
+  </div>
+</header>
+
+<section class="section" style="padding-top:0;">
+  <div class="container" style="max-width:720px;">
+    <div class="grid grid-4" id="quickOptions" style="margin-bottom:26px;"></div>
+
+    <div class="form-card" style="max-width:100%;">
+      <div class="field">
+        <label>Describe your problem</label>
+        <textarea id="hnProblem" rows="4" placeholder="e.g. My kitchen tap is leaking badly and won't stop"></textarea>
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <button type="button" class="btn btn-outline" id="hnLocate" style="width:100%;justify-content:flex-start;">📍 Use my location</button>
+      </div>
+      <button class="btn btn-primary btn-block" id="hnSubmit">Find Help Now</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="card-panel" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+      <div>
+        <h3 style="font-size:1.05rem;margin-bottom:4px;">Customer Care</h3>
+        <p style="margin:0;">Talk to our support team for anything else.</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <a href="tel:+910000000000" class="btn btn-outline">Call Customer Care</a>
+        <button class="btn btn-navy" id="chatBtn">Chat with Support</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <div><div class="brand" style="margin-bottom:6px;"><span class="brand-mark"></span>Helping.com</div><div class="footer-tag">Whatever you need. Help is nearby.</div></div>
+    <div class="footer-links"><a href="about.html">About Us</a><a href="how-it-works.html">How It Works</a></div>
+  </div>
+</footer>
+
+<nav class="bottom-nav">
+  <div class="bottom-nav-row"><a href="index.html">Home</a><a href="services.html">Services</a><a href="nearby.html">Nearby</a><a href="help-now.html" class="active">Help</a><a href="account.html">Account</a></div>
+</nav>
+
+<script src="js/session.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const options = [
+    { icon:"wrench", label:"Repair Help", q:"repair" },
+    { icon:"car", label:"Vehicle Assistance", q:"mechanic" },
+    { icon:"home", label:"Home Assistance", q:"cleaning" },
+    { icon:"pin", label:"Nearby Service", href:"nearby.html" },
+  ];
+  document.getElementById("quickOptions").innerHTML = options.map(o => `
+    <button class="service-card" style="align-items:center;text-align:center;cursor:pointer;border:1px solid var(--border);" data-q="${o.q||''}" data-href="${o.href||''}">
+      <div class="service-icon">${icon(o.icon,22)}</div>
+      <h3 style="font-size:.92rem;">${o.label}</h3>
+    </button>`).join("");
+
+  document.querySelectorAll("#quickOptions button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.href) { window.location.href = btn.dataset.href; return; }
+      document.getElementById("hnProblem").value = "I need help with " + btn.dataset.q + " nearby.";
+      toast("Pre-filled your request — add any extra details and submit.");
+    });
+  });
+
+  document.getElementById("hnLocate").addEventListener("click", (e) => {
+    e.target.textContent = "📍 Using Sector 4, Demo City";
+    toast("Location set for this request.");
+  });
+
+  document.getElementById("hnSubmit").addEventListener("click", () => {
+    const val = document.getElementById("hnProblem").value.trim();
+    if (!val){ toast("Please describe what you need help with.", "error"); return; }
+    toast("Searching for the most relevant help nearby…");
+    setTimeout(() => window.location.href = "nearby.html?q=" + encodeURIComponent(val), 700);
+  });
+
+  document.getElementById("chatBtn").addEventListener("click", () => toast("Support chat is a demo feature in this prototype."));
+</script>
+</body>
+</html>

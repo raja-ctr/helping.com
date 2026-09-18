@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Service Details — Helping.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-row">
+    <a href="index.html" class="brand"><span class="brand-mark"></span>Helping.com</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html" class="active">Services</a></li>
+      <li><a href="nearby.html">Nearby</a></li>
+      <li><a href="help-now.html">Help Now</a></li>
+      <li><a href="account.html">Account</a></li>
+    </ul>
+    <div class="nav-actions">
+      <span data-nav-auth></span>
+      <button class="nav-toggle" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</nav>
+
+<header class="section" style="padding-bottom:0;">
+  <div class="container">
+    <a href="services.html" class="link-more" style="font-size:.85rem;">← All services</a>
+    <div id="svcHeader" style="display:flex;align-items:center;gap:16px;margin-top:10px;"></div>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container" style="display:grid;grid-template-columns:250px 1fr;gap:26px;">
+    <aside class="filter-panel" style="height:fit-content;">
+      <div class="filter-group">
+        <h4>Distance</h4>
+        <input type="range" id="fDistance" min="1" max="10" value="10">
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:4px;">Up to <span id="fDistanceVal">10</span> km</div>
+      </div>
+      <div class="filter-group">
+        <h4>Minimum rating</h4>
+        <div class="filter-chip-row" id="fRating">
+          <button class="chip is-active" data-val="0">Any</button>
+          <button class="chip" data-val="4">4.0+</button>
+          <button class="chip" data-val="4.5">4.5+</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <h4>Availability</h4>
+        <label class="check-row"><input type="checkbox" id="fOpen"> Open now only</label>
+        <label class="check-row"><input type="checkbox" id="fVerified"> Verified only</label>
+      </div>
+    </aside>
+
+    <div>
+      <div class="section-head"><div><h2 id="resultsTitle" style="font-size:1.2rem;">Providers</h2></div></div>
+      <div id="providerList" style="display:flex;flex-direction:column;gap:14px;"></div>
+      <div class="empty-state" id="emptyProviders" style="display:none;">
+        <div style="font-size:2rem;">🙈</div>
+        <h3>No providers match these filters</h3>
+        <p>Try widening the distance range or clearing a filter.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <div><div class="brand" style="margin-bottom:6px;"><span class="brand-mark"></span>Helping.com</div><div class="footer-tag">Whatever you need. Help is nearby.</div></div>
+    <div class="footer-links"><a href="about.html">About Us</a><a href="how-it-works.html">How It Works</a></div>
+  </div>
+</footer>
+
+<nav class="bottom-nav">
+  <div class="bottom-nav-row">
+    <a href="index.html">Home</a><a href="services.html" class="active">Services</a><a href="nearby.html">Nearby</a><a href="help-now.html">Help</a><a href="account.html">Account</a>
+  </div>
+</nav>
+
+<script src="js/session.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const svc = getServiceById(params.get("service")) || SERVICES[0];
+  document.title = svc.name + " — Helping.com";
+  document.getElementById("svcHeader").innerHTML = `
+    <div class="service-icon" style="width:56px;height:56px;">${icon(svc.icon,26)}</div>
+    <div><h1 style="margin-bottom:2px;">${svc.name}</h1><p style="margin:0;">${svc.desc}</p></div>`;
+  document.getElementById("resultsTitle").textContent = `${svc.name} providers near you`;
+
+  let minRating = 0;
+  const state = { distance: 10, openOnly: false, verifiedOnly: false };
+
+  function renderList(){
+    const all = getProvidersByService(svc.id);
+    const list = all.filter(p =>
+      p.distance <= state.distance &&
+      p.rating >= minRating &&
+      (!state.openOnly || p.open) &&
+      (!state.verifiedOnly || p.verified)
+    ).sort((a,b) => a.distance - b.distance);
+
+    const wrap = document.getElementById("providerList");
+    document.getElementById("emptyProviders").style.display = list.length ? "none" : "block";
+    wrap.innerHTML = list.map(p => `
+      <div class="provider-card">
+        <div class="provider-thumb" style="background:${p.img}"></div>
+        <div class="provider-main">
+          <div class="provider-top">
+            <div>
+              <div class="provider-name">${p.name} ${p.verified ? '<span class="badge badge-verified">✓ Verified</span>':''}</div>
+              <div style="font-size:.82rem;color:var(--text-faint);">${p.experience} experience · ${p.area}</div>
+            </div>
+            <span class="badge ${p.open ? 'badge-open':'badge-closed'}">${p.open ? 'Open':'Closed'}</span>
+          </div>
+          <div class="stat-row">
+            <span>${starLine(p.rating)} <b>${p.rating}</b> (${p.reviews})</span>
+            <span>📍 <b>${p.distance} km</b></span>
+            <span>💰 ${p.price ? '₹'+p.price+' onwards' : 'Varies'}</span>
+          </div>
+          <div class="tag-row">${p.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+          <div class="provider-actions">
+            <a href="provider.html?id=${p.id}" class="btn btn-outline btn-sm">View Profile</a>
+            <a href="provider.html?id=${p.id}#request" class="btn btn-navy btn-sm">Request Service</a>
+            <a href="tel:+910000000000" class="btn btn-ghost btn-sm">Call</a>
+          </div>
+        </div>
+      </div>`).join("");
+  }
+
+  document.getElementById("fDistance").addEventListener("input", e => {
+    state.distance = Number(e.target.value);
+    document.getElementById("fDistanceVal").textContent = e.target.value;
+    renderList();
+  });
+  document.querySelectorAll("#fRating .chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll("#fRating .chip").forEach(c => c.classList.remove("is-active"));
+      chip.classList.add("is-active");
+      minRating = Number(chip.dataset.val);
+      renderList();
+    });
+  });
+  document.getElementById("fOpen").addEventListener("change", e => { state.openOnly = e.target.checked; renderList(); });
+  document.getElementById("fVerified").addEventListener("change", e => { state.verifiedOnly = e.target.checked; renderList(); });
+
+  renderList();
+</script>
+</body>
+</html>
